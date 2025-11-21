@@ -1,0 +1,164 @@
+---
+---
+<canvas id="celestial-canvas"></canvas>
+
+<script>
+  const canvas = document.getElementById('celestial-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d');
+
+  let width = 0;
+  let height = 0;
+  let stars: Star[] = [];
+  
+  const config = {
+    starCount: 100, // Number of stars
+    connectionDistance: 150, // Distance to connect
+    mouseDistance: 200, // Mouse interaction radius
+    starColor: 'rgba(255, 255, 255, 0.9)',
+    lineColor: '255, 255, 255', // RGB for rgba manipulation
+    speed: 0.05 // Floating speed
+  };
+
+  const mouse = { x: -1000, y: -1000 };
+
+  class Star {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    size: number;
+
+    constructor() {
+      this.x = Math.random() * width;
+      this.y = Math.random() * height;
+      this.vx = (Math.random() - 0.5) * config.speed;
+      this.vy = (Math.random() - 0.5) * config.speed;
+      this.size = Math.random() * 2 + 1;
+    }
+
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+
+      // Bounce off edges
+      if (this.x < 0 || this.x > width) this.vx *= -1;
+      if (this.y < 0 || this.y > height) this.vy *= -1;
+
+      // Mouse interaction (gentle repel)
+      const dx = mouse.x - this.x;
+      const dy = mouse.y - this.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < config.mouseDistance) {
+        const forceDirectionX = dx / distance;
+        const forceDirectionY = dy / distance;
+        const force = (config.mouseDistance - distance) / config.mouseDistance;
+        const directionX = forceDirectionX * force * 0.5;
+        const directionY = forceDirectionY * force * 0.5;
+
+        this.vx -= directionX * 0.5;
+        this.vy -= directionY * 0.5;
+      }
+    }
+
+    draw() {
+      if (!ctx) return;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = config.starColor;
+      ctx.fill();
+    }
+  }
+
+  function init() {
+    resize();
+    stars = [];
+    // Adjust star count based on screen size
+    const count = Math.floor((width * height) / 15000); 
+    for (let i = 0; i < count; i++) {
+      stars.push(new Star());
+    }
+    animate();
+  }
+
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+  }
+
+  function animate() {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, width, height);
+
+    stars.forEach(star => {
+      star.update();
+      star.draw();
+    });
+
+    // Draw connections
+    for (let i = 0; i < stars.length; i++) {
+      for (let j = i + 1; j < stars.length; j++) {
+        const dx = stars[i].x - stars[j].x;
+        const dy = stars[i].y - stars[j].y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < config.connectionDistance) {
+          ctx.beginPath();
+          const opacity = 1 - distance / config.connectionDistance;
+          ctx.strokeStyle = `rgba(${config.lineColor}, ${opacity})`;
+          ctx.lineWidth = 1;
+          ctx.moveTo(stars[i].x, stars[i].y);
+          ctx.lineTo(stars[j].x, stars[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Draw mouse connections
+    if (mouse.x > 0 && mouse.y > 0) {
+      stars.forEach(star => {
+        const dx = mouse.x - star.x;
+        const dy = mouse.y - star.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < config.mouseDistance) {
+            ctx.beginPath();
+            const opacity = 1 - distance / config.mouseDistance;
+            ctx.strokeStyle = `rgba(${config.lineColor}, ${opacity})`;
+            ctx.lineWidth = 1;
+            ctx.moveTo(mouse.x, mouse.y);
+            ctx.lineTo(star.x, star.y);
+            ctx.stroke();
+        }
+      });
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  window.addEventListener('resize', () => {
+    resize();
+    init(); // Re-init on resize to adjust count
+  });
+  
+  window.addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  });
+
+  init();
+</script>
+
+<style>
+  #celestial-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: #000; /* Pure black for Neo-Brutalist contrast */
+  }
+</style>

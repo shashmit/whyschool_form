@@ -1,0 +1,40 @@
+:root {
+    --color-bg: #000000;
+    --color-text: #ffffff;
+    --color-accent: #ffffff;
+    --border-width: 4px;
+    --box-shadow: 8px 8px 0px var(--color-accent);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: 'Courier New', Courier, monospace;
+    overflow-x: hidden;
+    cursor: url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 0H13V24H11V0Z" fill="white"/><path d="M0 11H24V13H0V11Z" fill="white"/></svg>') 12 12, crosshair;
+}
+
+a,
+button,
+input,
+label {
+    cursor: url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="20" height="20" stroke="white" stroke-width="2" fill="none"/><path d="M11 0H13V24H11V0Z" fill="white"/><path d="M0 11H24V13H0V11Z" fill="white"/></svg>') 12 12, pointer;
+}
+
+input,
+button {
+    font-family: inherit;
+}
+
+.neo-box {
+    border: var(--border-width) solid var(--color-accent);
+    background: var(--color-bg);
+    box-shadow: var(--box-shadow);
+    padding: 1rem;
+}
