@@ -1,0 +1,552 @@
+---
+---
+<div class="typeform-container">
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress-fill"></div>
+  </div>
+
+  <form id="bootcamp-form" action="#" method="POST" onsubmit="return false;">
+    
+    <!-- Step 1: Basic Information -->
+    <div class="step active" data-step="1">
+      <div class="step-content">
+        <label class="question-number">01</label>
+        <h2 class="question-text">BASIC INFORMATION</h2>
+        <div class="input-group">
+            <input type="text" id="name" name="name" placeholder="FULL NAME" autocomplete="off" />
+            <input type="tel" id="mobile" name="mobile" placeholder="MOBILE NUMBER" autocomplete="off" />
+            <input type="email" id="email" name="email" placeholder="EMAIL ID" autocomplete="off" />
+            <select id="gender" name="gender">
+                <option value="" disabled selected>SELECT GENDER</option>
+                <option value="Male">MALE</option>
+                <option value="Female">FEMALE</option>
+                <option value="Other">OTHER</option>
+            </select>
+        </div>
+        <button type="button" class="next-btn" onclick="nextStep(1)">NEXT SECTION >></button>
+      </div>
+    </div>
+
+    <!-- Step 2: Academic Information -->
+    <div class="step" data-step="2">
+      <div class="step-content">
+        <label class="question-number">02</label>
+        <h2 class="question-text">ACADEMIC INFORMATION</h2>
+        <div class="input-group">
+            <select id="course" name="course">
+                <option value="" disabled selected>COURSE / PROGRAM</option>
+                <option value="MBA">MBA</option>
+                <option value="MCA">MCA</option>
+                <option value="BBA">BBA</option>
+                <option value="BCA">BCA</option>
+                <option value="Other">OTHER</option>
+            </select>
+            <input type="text" id="year_semester" name="year_semester" placeholder="YEAR / SEMESTER" autocomplete="off" />
+            <input type="text" id="roll_number" name="roll_number" placeholder="COLLEGE ROLL NO / STUDENT ID" autocomplete="off" />
+        </div>
+        <button type="button" class="next-btn" onclick="nextStep(2)">NEXT SECTION >></button>
+        <button type="button" class="back-btn" onclick="prevStep(2)"><< BACK</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Team Role Preference -->
+    <div class="step" data-step="3">
+      <div class="step-content">
+        <label class="question-number">03</label>
+        <h2 class="question-text">TEAM ROLE PREFERENCE</h2>
+        <div class="radio-group" id="team-role-group">
+            <label class="radio-option">
+                <input type="checkbox" name="team_role" value="Communication and Leadership" onchange="handleRoleSelection(this)">
+                <span class="radio-label">COMMUNICATION & LEADERSHIP<br><small>(Presentation, hosting, public speaking)</small></span>
+            </label>
+            <label class="radio-option">
+                <input type="checkbox" name="team_role" value="Technical and Digital Skills" onchange="handleRoleSelection(this)">
+                <span class="radio-label">TECHNICAL & DIGITAL SKILLS<br><small>(Tech support, software, IT tools)</small></span>
+            </label>
+            <label class="radio-option">
+                <input type="checkbox" name="team_role" value="Creative and Design Department" onchange="handleRoleSelection(this)">
+                <span class="radio-label">CREATIVE & DESIGN<br><small>(Graphics, content creation, branding)</small></span>
+            </label>
+            <label class="radio-option">
+                <input type="checkbox" name="team_role" value="Operations and Management" onchange="handleRoleSelection(this)">
+                <span class="radio-label">OPERATIONS & MANAGEMENT<br><small>(Coordination, logistics, planning)</small></span>
+            </label>
+        </div>
+        <button type="button" class="next-btn" onclick="nextStep(3)">NEXT SECTION >></button>
+        <button type="button" class="back-btn" onclick="prevStep(3)"><< BACK</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Experience -->
+    <div class="step" data-step="4">
+      <div class="step-content">
+        <label class="question-number">04</label>
+        <h2 class="question-text">EXPERIENCE</h2>
+        <div class="input-group">
+            <label class="field-label">HAVE YOU ATTENDED ANY WORKSHOP/BOOTCAMP BEFORE?</label>
+            <div class="toggle-group">
+                <label><input type="radio" name="has_experience" value="yes" onchange="toggleExperienceTopic(true)"> YES</label>
+                <label><input type="radio" name="has_experience" value="no" checked onchange="toggleExperienceTopic(false)"> NO</label>
+            </div>
+            <div id="experience-topic-container" style="display: none; margin-top: 1rem; width: 100%;">
+                <input type="text" id="experience_topic" name="experience_topic" placeholder="MENTION THE TOPIC (OPTIONAL)" autocomplete="off" />
+            </div>
+        </div>
+        <button type="button" class="next-btn submit-btn" onclick="submitForm()">SUBMIT APPLICATION</button>
+        <button type="button" class="back-btn" onclick="prevStep(4)"><< BACK</button>
+      </div>
+    </div>
+
+    <!-- Success Step -->
+    <div class="step" data-step="5">
+      <div class="step-content success-message">
+        <h2 class="glitch-text">APPLICATION RECEIVED</h2>
+        <p>WE WILL CONTACT YOU SHORTLY.</p>
+        <button type="button" class="next-btn" onclick="location.reload()">START NEW APPLICATION</button>
+      </div>
+    </div>
+
+  </form>
+</div>
+
+<script is:inline>
+  let currentStep = 1;
+  const totalSteps = 4;
+  // Update this URL to your actual function URL
+  const SUPABASE_URL = "https://aihyunbaawpgfvpydkuz.supabase.co/functions/v1/smooth-processor";
+
+  function updateProgress() {
+    const progress = ((currentStep - 1) / totalSteps) * 100;
+    const fill = document.getElementById('progress-fill');
+    if (fill) fill.style.width = `${progress}%`;
+  }
+
+  function showStep(step) {
+    document.querySelectorAll('.step').forEach(el => {
+      el.classList.remove('active');
+      el.classList.remove('exit-left');
+    });
+    
+    const currentEl = document.querySelector(`.step[data-step="${step}"]`);
+    if (currentEl) currentEl.classList.add('active');
+    
+    updateProgress();
+    
+    // Auto-focus first input
+    const input = currentEl.querySelector('input, select');
+    if (input) setTimeout(() => input.focus(), 100);
+  }
+
+  window.toggleExperienceTopic = function(show) {
+    const container = document.getElementById('experience-topic-container');
+    if (container) {
+        container.style.display = show ? 'block' : 'none';
+        if (show) {
+            setTimeout(() => {
+                const input = container.querySelector('input');
+                if(input) input.focus();
+            }, 100);
+        }
+    }
+  }
+
+  window.handleRoleSelection = function(checkbox) {
+    const checkboxes = document.querySelectorAll('input[name="team_role"]');
+    const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+    
+    if (checkedCount >= 2) {
+        checkboxes.forEach(cb => {
+            if (!cb.checked) cb.disabled = true;
+        });
+    } else {
+        checkboxes.forEach(cb => {
+            cb.disabled = false;
+        });
+    }
+  }
+
+  window.nextStep = function(step) {
+    const currentEl = document.querySelector(`.step[data-step="${step}"]`);
+    
+    // Validation
+    let isValid = true;
+    if (step === 1) {
+        const name = document.getElementById('name').value.trim();
+        const mobile = document.getElementById('mobile').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const gender = document.getElementById('gender').value;
+        if (!name || !mobile || !email || !gender) isValid = false;
+    } else if (step === 2) {
+        const course = document.getElementById('course').value;
+        const year = document.getElementById('year_semester').value.trim();
+        const roll = document.getElementById('roll_number').value.trim();
+        if (!course || !year || !roll) isValid = false;
+    } else if (step === 3) {
+        const roles = document.querySelectorAll('input[name="team_role"]:checked');
+        if (roles.length === 0) isValid = false;
+    }
+
+    if (!isValid) {
+      const inputs = currentEl.querySelectorAll('input, select');
+      inputs.forEach(input => {
+          if (!input.value && !input.checked) {
+            input.classList.add('shake');
+            setTimeout(() => input.classList.remove('shake'), 500);
+          }
+      });
+      return;
+    }
+
+    currentEl.classList.add('exit-left');
+    currentStep++;
+    setTimeout(() => showStep(currentStep), 300);
+  }
+
+  window.prevStep = function(step) {
+    currentStep--;
+    showStep(currentStep);
+  }
+
+  window.submitForm = async function() {
+    const btn = document.querySelector('.submit-btn');
+    
+    // Collect Data
+    const formData = {
+        name: document.getElementById('name').value.trim(),
+        mobile: document.getElementById('mobile').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        gender: document.getElementById('gender').value,
+        course: document.getElementById('course').value,
+        year_semester: document.getElementById('year_semester').value.trim(),
+        roll_number: document.getElementById('roll_number').value.trim(),
+        team_role: Array.from(document.querySelectorAll('input[name="team_role"]:checked')).map(cb => cb.value),
+        has_experience: document.querySelector('input[name="has_experience"]:checked')?.value === 'yes',
+        experience_topic: document.getElementById('experience_topic').value.trim()
+    };
+
+    btn.innerText = "PROCESSING...";
+    btn.disabled = true;
+
+    try {
+      const response = await fetch(SUPABASE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+      
+      const responseData = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(responseData.error || 'SUBMISSION FAILED');
+      }
+
+      currentStep++;
+      showStep(currentStep);
+      const fill = document.getElementById('progress-fill');
+      if (fill) fill.style.width = '100%';
+
+    } catch (error) {
+      console.error(error);
+      btn.innerText = "RETRY";
+      alert("Error: " + error.message);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // Enter key support
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      // Prevent default form submission
+      e.preventDefault();
+      
+      // If it's a textarea or we want specific behavior, handle it. 
+      // For now, let's just trigger next button if it's not the last step
+      const activeStep = document.querySelector('.step.active');
+      if (activeStep) {
+        const nextBtn = activeStep.querySelector('.next-btn');
+        if (nextBtn) nextBtn.click();
+      }
+    }
+  });
+
+  updateProgress();
+</script>
+
+<style>
+  .typeform-container {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    padding: 0 1rem;
+    /* background-color: #000; Removed to show stars */
+    color: #fff;
+    font-family: 'Courier New', Courier, monospace; /* Retro font */
+  }
+
+  .progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background: #333;
+    z-index: 10;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: #fff;
+    width: 0%;
+    transition: width 0.5s ease;
+  }
+
+  .step {
+    position: absolute;
+    /* Desktop Positioning: Bottom Right */
+    bottom: 5%;
+    right: 5%;
+    left: auto;
+    top: auto;
+    width: 100%;
+    max-width: 600px; /* Reduced width for better corner fit */
+    padding: 2rem;
+    opacity: 0;
+    transform: translateY(50px);
+    pointer-events: none;
+    transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+    
+    /* Ensure content is visible if screen is short */
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .step.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+  }
+  
+  .step.exit-left {
+    opacity: 0;
+    transform: translateY(-50px); /* Slide up instead of left for corner feel */
+  }
+
+  .step-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: left;
+  }
+
+  .question-number {
+    font-size: 1.2rem;
+    color: #fff;
+    border: 2px solid #fff;
+    padding: 0.2rem 0.5rem;
+    margin-bottom: 1rem;
+    background: #000;
+  }
+
+  .question-text {
+    font-size: 2rem;
+    line-height: 1.2;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+    font-weight: bold;
+  }
+
+  .input-group {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  input, select {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid #555;
+    color: #fff;
+    font-size: 1.5rem;
+    padding: 0.5rem 0;
+    outline: none;
+    border-radius: 0;
+    font-family: inherit;
+    transition: border-color 0.3s;
+  }
+
+  select {
+    cursor: pointer;
+  }
+
+  select option {
+    background: #000;
+    color: #fff;
+  }
+
+  input::placeholder {
+    color: #555;
+  }
+
+  input:focus, select:focus {
+    border-bottom-color: #fff;
+  }
+
+  /* Radio Group Styling */
+  .radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    margin-bottom: 2rem;
+  }
+
+  .radio-option {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 1rem;
+    border: 1px solid #333;
+    transition: all 0.2s;
+  }
+
+  .radio-option:hover {
+    border-color: #fff;
+    background: #111;
+  }
+
+  .radio-option input[type="radio"], .radio-option input[type="checkbox"] {
+    width: auto;
+    margin-right: 1rem;
+    transform: scale(1.5);
+    cursor: pointer;
+  }
+
+  .radio-label {
+    font-size: 1.2rem;
+    line-height: 1.4;
+  }
+
+  .radio-label small {
+    color: #888;
+    font-size: 0.9rem;
+  }
+
+  .toggle-group {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .toggle-group label {
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .field-label {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    display: block;
+    color: #ccc;
+  }
+
+  .next-btn {
+    font-size: 1.2rem;
+    padding: 1rem 2rem;
+    background: #fff;
+    color: #000;
+    border: 2px solid #fff;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-weight: bold;
+    transition: all 0.2s;
+    display: inline-block;
+    margin-top: 1rem;
+  }
+
+  .next-btn:hover {
+    background: #000;
+    color: #fff;
+    box-shadow: 4px 4px 0 #fff;
+  }
+
+  .back-btn {
+    background: transparent;
+    border: none;
+    color: #777;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 1rem;
+    text-transform: uppercase;
+    text-decoration: underline;
+    display: block;
+  }
+
+  .back-btn:hover {
+    color: #fff;
+  }
+
+  .shake {
+    animation: shake 0.5s;
+    border-bottom-color: #ff0000 !important;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+  }
+
+  @media (max-width: 768px) {
+    .typeform-container {
+      padding: 0 0.5rem;
+    }
+    
+    .step {
+      padding: 1rem;
+      max-width: 100%;
+      /* Mobile Positioning: Restore Centered Layout */
+      bottom: auto;
+      right: auto;
+      left: 50%;
+      top: 15%;
+      transform: translateX(-50%) translateY(50px);
+    }
+
+    .step.active {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .step.exit-left {
+      transform: translateX(-50%) translateY(-50px);
+    }
+    
+    .question-text {
+      font-size: 1.5rem;
+    }
+    
+    input, select {
+      font-size: 1.2rem;
+    }
+    
+    .radio-label {
+        font-size: 1rem;
+    }
+  }
+</style>

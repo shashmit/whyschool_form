@@ -1,31 +1,31 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
-    'Access-Control-Allow-Origin': '*', // Ideally, restrict this to your specific domain in production
+    'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 Deno.serve(async (req) => {
-    // 1. Handle CORS Pre-flight
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders })
     }
 
     try {
-        // 2. Initialize Supabase
-        // We use the Service Role Key to bypass RLS, ensuring the insert works 
-        // regardless of database policies.
         const supabase = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        // 3. Parse and Validate Data
-        // Note: This will fail if the body is not valid JSON
-        const { name, phone, team } = await req.json()
+        const body = await req.json()
+        const {
+            name, mobile, email, gender,
+            course, year_semester, roll_number,
+            team_role, has_experience, experience_topic
+        } = body
 
-        if (!name || !phone || !team) {
+        // Basic validation
+        if (!name || !mobile || !email || !gender || !course || !year_semester || !roll_number || !team_role) {
             return new Response(
                 JSON.stringify({ error: 'MISSING_REQUIRED_FIELDS' }),
                 {
@@ -35,21 +35,34 @@ Deno.serve(async (req) => {
             )
         }
 
-        // 4. Perform Insert
+        // Validate team_role is an array and has correct length
+        if (!Array.isArray(team_role) || team_role.length === 0 || team_role.length > 2) {
+            return new Response(
+                JSON.stringify({ error: 'INVALID_TEAM_ROLE_SELECTION' }),
+                {
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                    status: 400,
+                }
+            )
+        }
+
         const { data, error } = await supabase
-            .from('registrations')
+            .from('bootcamp_enrollments')
             .insert([
-                { name, phone, team },
+                {
+                    name, mobile, email, gender,
+                    course, year_semester, roll_number,
+                    team_role, has_experience, experience_topic
+                },
             ])
             .select()
-            .single() // We expect a single response since we inserted one row
+            .single()
 
         if (error) {
             console.error("Supabase Insert Error:", error)
             throw new Error('DATABASE_WRITE_FAILED')
         }
 
-        // 5. Success Response
         return new Response(
             JSON.stringify({ success: true, data }),
             {
@@ -64,7 +77,7 @@ Deno.serve(async (req) => {
             JSON.stringify({ error: error.message || 'INTERNAL_SERVER_ERROR' }),
             {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                status: 400, // or 500 depending on the error
+                status: 400,
             },
         )
     }
